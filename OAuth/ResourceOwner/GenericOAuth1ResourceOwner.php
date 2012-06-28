@@ -226,4 +226,16 @@ class GenericOAuth1ResourceOwner extends AbstractResourceOwner
 
         return parent::httpRequest($url, $content, $headers, $method);
     }
+
+    /**
+     * Checks whether the class can handle the request.
+     *
+     * @param Request $request
+     *
+     * @return boolean
+     */
+    public function handles(Request $request)
+    {
+        return null !== $request->query->get('oauth_token');
+    }
 }
