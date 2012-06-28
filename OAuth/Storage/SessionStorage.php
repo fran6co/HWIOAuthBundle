@@ -7,6 +7,9 @@ use HWI\Bundle\OAuthBundle\OAuth\StorageInterface,
 
 /**
  * Session storage for tokens
+ *
+ * @author Alexander <iam.asm89@gmail.com>
+ * @author Francisco Facioni <fran6co@gmail.com>
  */
 class SessionStorage implements StorageInterface
 {
@@ -25,21 +28,7 @@ class SessionStorage implements StorageInterface
      */
     public function read(ResourceOwnerInterface $resourceOwner, $tokenId)
     {
-        $key = $this->generateKey($resourceOwner);
-        $requestToken = $this->session->get($key, null);
-
-        if (null !== $requestToken) {
-            if ($tokenId == $requestToken['oauth_token']
-                || ($requestToken['oauth_expires_in'] > 0
-                && $requestToken['timestamp'] + $requestToken['oauth_expires_in'] < time())
-            ) {
-                $this->session->remove($key);
-
-                return null;
-            }
-        }
-
-        return $requestToken;
+        return $this->session->get($this->generateKey($resourceOwner, $tokenId));
     }
 
     /**
@@ -47,16 +36,16 @@ class SessionStorage implements StorageInterface
      */
     public function write(ResourceOwnerInterface $resourceOwner, $token)
     {
-        $this->session->set($this->generateKey($resourceOwner), $token);
+        $this->session->set($this->generateKey($resourceOwner, $token['oauth_token']), $token);
     }
 
-    protected function generateKey(ResourceOwnerInterface $resourceOwner)
+    protected function generateKey(ResourceOwnerInterface $resourceOwner, $tokenId)
     {
         return implode('.', array(
-            '_hwi_oauth',
+            '_hwi_oauth.request_token',
             $resourceOwner->getName(),
             $resourceOwner->getOption('client_id'),
-            'request_token',
+            $tokenId,
         ));
     }
 }
