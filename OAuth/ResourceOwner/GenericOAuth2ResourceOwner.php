@@ -81,12 +81,7 @@ class GenericOAuth2ResourceOwner extends AbstractResourceOwner
         $content = http_build_query($parameters);
 
         $apiResponse = $this->httpRequest($url, $content);
-
-        if (false !== strpos($apiResponse->getHeader('Content-Type'), 'application/json')) {
-            $response = json_decode($apiResponse->getContent(), true);
-        } else {
-            parse_str($apiResponse->getContent(), $response);
-        }
+        $response = $this->getResponseContent($apiResponse);
 
         if (isset($response['error'])) {
             throw new AuthenticationException(sprintf('OAuth error: "%s"', $response['error']));
@@ -97,5 +92,13 @@ class GenericOAuth2ResourceOwner extends AbstractResourceOwner
         }
 
         return $response['access_token'];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function handles(Request $request)
+    {
+        return null !== $request->query->get('code');
     }
 }

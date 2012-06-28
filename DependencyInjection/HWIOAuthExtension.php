@@ -112,14 +112,20 @@ class HWIOAuthExtension extends Extension
             $paths = isset($options['paths']) ? $options['paths'] : array();
             unset($options['paths']);
 
-            $container
-                ->register('hwi_oauth.resource_owner.'.$name, '%hwi_oauth.resource_owner.'.$type.'.class%')
-                ->addArgument(new Reference('buzz.client'))
+            $definition = $container->register('hwi_oauth.resource_owner.'.$name, '%hwi_oauth.resource_owner.'.$type.'.class%');
+            $definition->addArgument(new Reference('buzz.client'))
                 ->addArgument(new Reference('security.http_utils'))
-                ->addArgument(new Reference('hwi_oauth.storage.session'))
                 ->addArgument($options)
-                ->addArgument($name)
-                ->addArgument($paths);
+                ->addArgument($name);
+
+            if (!empty($paths)) {
+                $definition->addMethodCall('addPaths', array($paths));
+            }
+
+            // todo: come up with a nicer way to do check this
+            if (in_array($type, array('linkedin', 'oauth1', 'twitter'))) {
+                $definition->addArgument(new Reference('hwi_oauth.storage.session'));
+            }
         }
     }
 
