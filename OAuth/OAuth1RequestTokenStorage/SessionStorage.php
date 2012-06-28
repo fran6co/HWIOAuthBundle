@@ -1,22 +1,22 @@
 <?php
 
-namespace HWI\Bundle\OAuthBundle\OAuth\Storage;
+namespace HWI\Bundle\OAuthBundle\OAuth\OAuth1RequestTokenStorage;
 
-use HWI\Bundle\OAuthBundle\OAuth\StorageInterface,
+use HWI\Bundle\OAuthBundle\OAuth\OAuth1RequestTokenStorageInterface,
     HWI\Bundle\OAuthBundle\OAuth\ResourceOwnerInterface;
 
 /**
- * Session storage for tokens
+ * Request token storage implementation using the Symfony session.
  *
  * @author Alexander <iam.asm89@gmail.com>
  * @author Francisco Facioni <fran6co@gmail.com>
  */
-class SessionStorage implements StorageInterface
+class SessionStorage implements OAuth1RequestTokenStorageInterface
 {
     private $session;
 
     /**
-     * @param Session $session
+     * @param mixed $session
      */
     public function __construct($session)
     {
@@ -26,7 +26,7 @@ class SessionStorage implements StorageInterface
     /**
      * {@inheritDoc}
      */
-    public function read(ResourceOwnerInterface $resourceOwner, $tokenId)
+    public function fetch(ResourceOwnerInterface $resourceOwner, $tokenId)
     {
         return $this->session->get($this->generateKey($resourceOwner, $tokenId));
     }
@@ -34,11 +34,19 @@ class SessionStorage implements StorageInterface
     /**
      * {@inheritDoc}
      */
-    public function write(ResourceOwnerInterface $resourceOwner, $token)
+    public function save(ResourceOwnerInterface $resourceOwner, $token)
     {
         $this->session->set($this->generateKey($resourceOwner, $token['oauth_token']), $token);
     }
 
+    /**
+     * Key to for fetching or saving a token.
+     *
+     * @param ResourceOwnerInterface $resourceOwner
+     * @param mixed $tokenId
+     *
+     * @return string
+     */
     protected function generateKey(ResourceOwnerInterface $resourceOwner, $tokenId)
     {
         return implode('.', array(
